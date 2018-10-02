@@ -1,4 +1,4 @@
-# Term Project for CS360
+# B+ tree 
 
 ## Table of contents
 1. [Project overview](#project-overview)
