@@ -9,6 +9,11 @@ import collections
 def split_list(arr, divider):
     return arr[:divider], arr[divider:]
 
+"""Finds position of the key in the sorted array arr
+
+Args:
+    key: a variable of the same type as elements of array
+"""
 def find_pos(arr, key):
     pos = 0
     while pos < len(arr) and key >= arr[pos]:
@@ -16,6 +21,16 @@ def find_pos(arr, key):
     return pos
 
 class Node(object):
+    """The class implements the B+ tree node structure 
+    
+    Args:
+        parent: a parent of the node. For root it is None.
+        children: an array containing children nodes
+        keys: an array of keys in the node
+        values: the array containing data (applicable to leaves)
+        right: a right brother node of the node (applicable to leaves)
+        right: a left brother node of the node (applicable to leaves)
+    """
     def __init__(self, parent=None):
         self.parent = parent
         self.children = []
@@ -34,10 +49,23 @@ class Node(object):
         return not self.children
 
 class BPlusTree(object):
+    """The class that implements B+ tree
+
+    Args: 
+        order (int): the order of B+ tree, i.e it means that the non-root node 
+            can have number of children between order and 2 * order.   
+    """
     def __init__(self, order=2):
         self.root = Node()
         self.order = order
     
+    """Finds leaf by key
+
+    Args: 
+        key: the key by which the B+ tree need to find leaf
+    Returns:
+        a leaf that can key 
+    """
     def find_leaf(self, key):
         cur = self.root
         while not cur.leaf():
@@ -49,13 +77,28 @@ class BPlusTree(object):
                 cur = cur.children[-1]
         return cur
     
+    """Find all data associated with the key
+
+    Args:
+        key: the key by which the data will be searched
+    Returns:
+        Array with data associated with 'key', if there is no such key in tree
+        returns []. 
+    """
     def find_values(self, key):
         node = self.find_leaf(key)
         if key not in node.keys:
             return []
         else:
             return node.values[node.keys.index(key)]
+    """Inserts a (key, value) pair into B+ tree
 
+    If key exists in tree, the value is added in the node to the array of values
+
+    Args: 
+        key: a key by which the tree will be queried
+        val: the variable containing some data
+    """
     def insert(self, key, val):
         node = self.find_leaf(key)
         if key in node.keys:
@@ -69,7 +112,11 @@ class BPlusTree(object):
 
         if len(node.keys) == self.order * 2:
             self.split(node)
-    
+    """Splits node if it is full
+
+    Args: 
+        node: a node to split
+    """
     def split(self, node):
         new_node = Node()
         new_node.right = node
@@ -100,6 +147,17 @@ class BPlusTree(object):
         if len(par.keys) == self.order * 2:
             self.split(par)
     
+    """Delete a (key, value) pair from B+ tree
+    
+    NOTE: If there are several values with a certain key, only value will be 
+    deleted from the tree. Otherwise, the whole node will be deleted. 
+
+    Args:
+        key: the key by which the data will be deleted
+        val: a data that need to be deleted 
+    Returns:
+        True if such key exists in tree, otherwise False
+    """
     def delete(self, key, val):
         node = self.find_leaf(key)
 
@@ -108,7 +166,15 @@ class BPlusTree(object):
         
         self.delete_key(node, key, val)
         return True
-
+    
+    """Delete a key from a B+ tree
+    
+    Args:
+        node: a node from which the key will be deleted 
+        key: key which exists in node
+        val: if provided indicates that the key is deleted from leaf
+    
+    """
     def delete_key(self, node, key, val=None):
         pos = node.keys.index(key)
         if node.leaf():
@@ -173,7 +239,15 @@ class BPlusTree(object):
                     node.right.left = node
 
                 self.delete_key(node.parent, r_node.keys[0])
-        
+    
+    """Replaces old key with new key starting from node
+    all the way up to the root.
+
+    Args: 
+        node: a node to start replacing from
+        old_key: a value of key to be replaced
+        new_key: a value of key which will replace old key
+    """    
     def replace_key(self, node, old_key, new_key):
         if not node:
             return
@@ -183,7 +257,32 @@ class BPlusTree(object):
     
     def print_tree(self):
         self.print(self.root)
+    
+    """Prints node information in the format
 
+    The tree traversal is postorder
+
+    Args: 
+        node: a node to be printed
+
+    Example:
+        For leaf node:
+
+        ------
+        Keys: [1, 5, 8]
+        Values: [[3], [2], [1, 4]]
+        # of children: 0
+        ------
+        
+        For internal node:
+        
+        ------
+        Keys: [1, 5, 8]
+        Values: []
+        # of children: 4 
+        ------
+
+    """
     def print(self, node):
         print("------")
         print("Keys: {}".format(node.keys))
